@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdlib>
+#include <limits>
 using namespace std;
 
 struct Product {
@@ -12,6 +13,36 @@ struct Product {
 };
 
 vector<Product> products;
+
+int getIntInput(string prompt) {
+    int value;
+    while (true) {
+        cout << prompt;
+        if (cin >> value) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return value;
+        } else {
+            cout << "Input tidak valid! Harus berupa angka.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    }
+}
+
+double getDoubleInput(string prompt) {
+    double value;
+    while (true) {
+        cout << prompt;
+        if (cin >> value) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return value;
+        } else {
+            cout << "Input tidak valid! Harus berupa angka.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    }
+}
 
 void saveData() {
     ofstream file("data.txt");
@@ -44,9 +75,7 @@ void loadData() {
 void addProduct() {
     Product p;
 
-    cout << "\nID Produk   : ";
-    cin >> p.id;
-    cin.ignore();
+    p.id = getIntInput("\nID Produk   : ");
 
     for(auto existing : products) {
         if(existing.id == p.id) {
@@ -58,29 +87,37 @@ void addProduct() {
     cout << "Nama Produk : ";
     getline(cin, p.name);
 
-    cout << "Harga       : ";
-    cin >> p.price;
-
-    cout << "Stock       : ";
-    cin >> p.stock;
+    p.price = getDoubleInput("Harga       : ");
+    p.stock = getIntInput("Stock       : ");
 
     products.push_back(p);
     cout << "Produk berhasil ditambahkan!\n";
 }
 
-void insertionSort() {
+void insertionSort(bool ascending = true) {
     int n = (int)products.size();
     for (int i = 1; i < n; i++) {
         Product key = products[(size_t)i];
         int j = i - 1;
 
-        while (j >= 0 && products[(size_t)j].price > key.price) {
-            products[(size_t)(j + 1)] = products[(size_t)j];
-            j = j - 1;
+        if (ascending) {
+            while (j >= 0 && products[(size_t)j].price > key.price) {
+                products[(size_t)(j + 1)] = products[(size_t)j];
+                j = j - 1;
+            }
+        } else {
+            while (j >= 0 && products[(size_t)j].price < key.price) {
+                products[(size_t)(j + 1)] = products[(size_t)j];
+                j = j - 1;
+            }
         }
         products[(size_t)(j + 1)] = key;
     }
-    cout << "Produk berhasil diurutkan berdasarkan harga termurah!\n";
+    if (ascending) {
+        cout << "Produk berhasil diurutkan berdasarkan harga termurah!\n";
+    } else {
+        cout << "Produk berhasil diurutkan berdasarkan harga termahal!\n";
+    }
 }
 
 void showProducts(bool isBuyer = false) {
@@ -101,11 +138,22 @@ void showProducts(bool isBuyer = false) {
         }
 
         char sortChoice;
-        cout << "\nUrutkan berdasarkan harga termurah? (y/n): ";
+        cout << "\nIngin mengurutkan produk? (y/n): ";
         cin >> sortChoice;
 
         if(sortChoice == 'y' || sortChoice == 'Y') {
-            insertionSort();
+            int orderChoice;
+            cout << "Pilih urutan harga:\n";
+            cout << "1. Termurah ke Termahal (Ascending)\n";
+            cout << "2. Termahal ke Termurah (Descending)\n";
+            orderChoice = getIntInput("Pilih (1-2): ");
+
+            if (orderChoice == 2) {
+                insertionSort(false);
+            } else {
+                insertionSort(true);
+            }
+
             cout << "\n===== LIST PRODUK (TERURUT) =====\n";
             for(auto p : products) {
                 cout << p.id << " | "
@@ -129,8 +177,7 @@ void rentProduct() {
     bool found = false;
 
     cout << "\n=== TRANSAKSI SEWA PRODUK ===\n";
-    cout << "Masukkan ID produk yang ingin disewa: ";
-    cin >> id;
+    id = getIntInput("Masukkan ID produk yang ingin disewa: ");
 
     for(auto &p : products) {
         if(p.id == id) {
@@ -148,8 +195,7 @@ void rentProduct() {
                 return;
             }
 
-            cout << "\nMasukkan jumlah sewa: ";
-            cin >> qty;
+            qty = getIntInput("\nMasukkan jumlah sewa: ");
 
             if(qty <= 0) {
                 cout << "Jumlah sewa tidak valid!\n";
@@ -180,6 +226,7 @@ void rentProduct() {
 }
 
 bool loginAdmin() {
+    system("cls");
     string username, password;
     cout << "\nUsername: ";
     cin >> username;
@@ -207,8 +254,7 @@ void adminMenu() {
         cout << "3. Simpan Data\n";
         cout << "4. Ambil Data\n";
         cout << "0. Log Out\n";
-        cout << "Pilih: ";
-        cin >> choice;
+        choice = getIntInput("Pilih: ");
 
         switch(choice) {
             case 1: 
@@ -244,8 +290,7 @@ void buyerMenu() {
         cout << "1. Tampilkan Produk\n";
         cout << "2. Sewa Produk\n";
         cout << "0. Kembali\n";
-        cout << "Pilih: ";
-        cin >> choice;
+        choice = getIntInput("Pilih: ");
 
         switch(choice) {
             case 1: 
@@ -275,8 +320,7 @@ int main() {
         cout << "1. Admin\n";
         cout << "2. Pembeli\n";
         cout << "0. Keluar\n";
-        cout << "Pilih: ";
-        cin >> choice;
+        choice = getIntInput("Pilih: ");
 
         switch(choice) {
             case 1:
