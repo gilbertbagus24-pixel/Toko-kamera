@@ -4,6 +4,8 @@
 #include <limits>
 #include <vector>
 #include <iomanip>
+#include <algorithm>
+#include <ctime>
 using namespace std;
 
 struct Product {
@@ -214,18 +216,30 @@ void printReceipt(Transaction t, Product p){
 
   file << fixed << setprecision(0);
 
+  time_t now = time(0);
+  tm *ltm = localtime(&now);
+
   file << "+--------------------------------+\n";
   file << "|         KREATIV STORE          |\n";
   file << "+--------------------------------+\n";
   file << "| ID TX    : " << left << setw(20) << t.id << "|\n";
+  string tanggal = 
+      to_string(ltm->tm_mday) + "/" + to_string(1 + ltm->tm_mon) + "/" + to_string(1900 + ltm->tm_year);
+
+  file << "| Tanggal  : " << left << setw(20) << tanggal << "|\n";
+  string jam = to_string(ltm->tm_hour) + ":" + to_string(ltm->tm_min) + ":" + to_string(ltm->tm_sec);
+  file << "| Jam      : " << left << setw(20) << jam << "|\n";
   file << "| Produk   : " << left << setw(20) << p.name << "|\n";
   file << "| Qty      : " << left << setw(20) << t.qty << "|\n";
-  file << "| Harga   : Rp" << left << setw(18) << p.price << "|\n";
+  file << "| Harga    : Rp" << left << setw(18) << p.price << "|\n";
 
   file << "+--------------------------------+\n";
 
-  file << "| TOTAL   : Rp" << left << setw(18) << t.totalPrice << "|\n";
+  file << "| TOTAL    : Rp" << left << setw(18) << t.totalPrice << "|\n";
 
+  file << "+--------------------------------+\n";
+
+  file << "| Terimakasih telah menyewa!     |\n";
   file << "+--------------------------------+\n";
 
   file.close();
@@ -467,6 +481,46 @@ void adminMenu() {
   } while (choice != 0);
 }
 
+void searchProduct(){
+  if(products.empty()){
+    cout << "\nBelum ada produk.\n";
+    return;
+  }
+
+  string keyword;
+
+  cout << "\n=== CARI PRODUK ===\n";
+  cout << "Masukan nama produk: ";
+  getline(cin, keyword);
+
+  transform(keyword.begin(), keyword.end(),keyword.begin(), ::tolower);
+
+  bool found = false;
+
+  cout << "\n==== HASIL PENCARIAN ====\n";
+
+  cout << fixed << setprecision(0);
+
+  for (auto p : products){
+    string productName = p.name;
+
+    transform(productName.begin(), productName.end(), productName.begin(), ::tolower);
+
+    if(productName.find(keyword) != string::npos){
+      cout << p.id << " | " << p.name << " | Rp" << p.price << "| Stock: " << p.stock << endl;
+
+      found =true;
+
+    }
+
+  }
+  if (!found){
+    cout << "Produk tidak ditemukan.\n";
+
+  }
+}
+
+
 void buyerMenu() {
   int choice;
   do {
@@ -474,6 +528,7 @@ void buyerMenu() {
     cout << "\n===== MENU PEMBELI =====\n";
     cout << "1. Tampilkan Produk\n";
     cout << "2. Sewa Produk\n";
+    cout << "3. Cari Produk\n";
     cout << "0. Kembali\n";
     choice = getIntInput("Pilih: ");
 
@@ -484,6 +539,10 @@ void buyerMenu() {
       break;
     case 2:
       rentProduct();
+      system("pause");
+      break;
+    case 3:
+      searchProduct();
       system("pause");
       break;
     case 0:
