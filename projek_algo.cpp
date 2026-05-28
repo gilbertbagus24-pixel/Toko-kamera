@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <iomanip>
 using namespace std;
 
 struct Product {
@@ -160,6 +161,8 @@ void showProducts(bool isBuyer = false) {
       return;
     }
 
+    cout << fixed << setprecision(0);
+
     for (auto p : products) {
       cout << p.id << " | " << p.name << " | Rp" << p.price
            << " | Stock: " << p.stock << endl;
@@ -198,12 +201,48 @@ void showProducts(bool isBuyer = false) {
   } while (stayChoice == 'y' || stayChoice == 'Y');
 }
 
+void printReceipt(Transaction t, Product p){
+  string filename = "strux_" + to_string(t.id) + ".txt";
+
+  ofstream file(filename);
+
+
+  if (!file.is_open()){
+    cout << "Gagal membuat struk!\n";
+    return;
+  }
+
+  file << fixed << setprecision(0);
+
+  file << "+--------------------------------+\n";
+  file << "|         KREATIV STORE          |\n";
+  file << "+--------------------------------+\n";
+  file << "| ID TX    : " << left << setw(20) << t.id << "|\n";
+  file << "| Produk   : " << left << setw(20) << p.name << "|\n";
+  file << "| Qty      : " << left << setw(20) << t.qty << "|\n";
+  file << "| Harga   : Rp" << left << setw(18) << p.price << "|\n";
+
+  file << "+--------------------------------+\n";
+
+  file << "| TOTAL   : Rp" << left << setw(18) << t.totalPrice << "|\n";
+
+  file << "+--------------------------------+\n";
+
+  file.close();
+
+  cout << "Struk berhasil dicetak: " << filename << endl;
+  
+  
+}
+
 void rentProduct() {
   int id, qty;
   bool found = false;
 
   cout << "\n=== TRANSAKSI SEWA PRODUK ===\n";
   id = getIntInput("Masukkan ID produk yang ingin disewa: ");
+
+  cout << fixed << setprecision(0);
 
   for (auto &p : products) {
     if (p.id == id) {
@@ -250,6 +289,8 @@ void rentProduct() {
       t.isReturned = false;
 
       transactions.push_back(t);
+
+      printReceipt(t, p);
 
       cout << "\n[TRANSAKSI BERHASIL]\n";
       cout << "ID Transaksi: " << t.id << endl;
@@ -356,6 +397,7 @@ void returnProduct() {
     cout << "ID Transaksi tidak ditemukan!\n";
   }
 }
+
 
 bool loginAdmin() {
   system("cls");
