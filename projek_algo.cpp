@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <ctime>
+#include <string>
 using namespace std;
 
 struct Product {
@@ -23,8 +24,15 @@ struct Transaction {
   bool isReturned;
 };
 
+struct Account{
+  string username;
+  string passwordHash;
+  string role;
+};
+
 vector<Product> products;
 vector<Transaction> transactions;
+vector<Account> accounts;
 
 int getIntInput(string prompt) {
   int value;
@@ -412,8 +420,88 @@ void returnProduct() {
   }
 }
 
+string simpleHash(string password){
 
-bool loginAdmin() {
+  int hash = 0;
+
+  for (char c : password){
+      hash += c * 7;
+  }
+
+  return to_string(hash);
+}
+
+void saveAccounts(){
+
+  ofstream file("accounts.txt");
+
+  for (auto a : accounts){
+
+    file << a.username << ",";
+    file << a.passwordHash << ",";
+    file << a.role << endl;
+  }
+  file.close();
+}
+
+void loadAccounts(){
+
+  ifstream file("accounts.txt");
+
+  if (!file.is_open())
+      return;
+
+  accounts.clear();
+
+  Account a;
+
+  char comma;
+
+  while (getline(file, a.username, ',')){
+
+    getline(file, a.passwordHash, ',');
+    getline (file, a.role);
+    accounts.push_back(a);
+  }
+    file.close();
+}
+
+void registerAccount(){
+
+  Account a;
+
+  cout << "\n=== REGISTER ACCOUNT ===\n";
+
+  cout << "Username: ";
+  cin >> a.username;
+
+  for(auto acc : accounts){
+
+    if (acc.username == a.username){
+
+      cout << "Username sudah digunakan!\n";
+      return;
+    }
+    
+  } 
+    string password;
+
+    cout << "Password: ";
+    cin >> password;
+
+    a.passwordHash = simpleHash(password);
+
+    a.role = "buyer";
+
+    accounts.push_back(a);
+
+    saveAccounts();
+
+    cout << "Register berhasil!\n";
+  
+}
+
+bool login(string role) {
   system("cls");
   string username, password;
   cout << "\nUsername: ";
@@ -421,15 +509,27 @@ bool loginAdmin() {
   cout << "Password: ";
   cin >> password;
 
-  if (username == "admin" && password == "admin123") {
-    cout << "Login Berhasil!\n";
-    system("pause");
-    return true;
-  } else {
+  string hashed = simpleHash(password);
+
+  for (auto a : accounts){
+
+    if (a.username == username && a.passwordHash == hashed && a.role == role) {
+
+      cout << "Login Berhasil!\n";
+      system("pause");
+
+      return true;
+    }
+  }
+ // if (username == "admin" && password == "admin123") {
+   // cout << "Login Berhasil!\n";
+    //system("pause");
+    //return true;
+  //} else {
     cout << "Login Gagal!\n";
     system("pause");
     return false;
-  }
+  //}
 }
 
 void adminMenu() {
@@ -443,6 +543,8 @@ void adminMenu() {
     cout << "4. Ambil Data\n";
     cout << "5. Pengembalian Produk\n";
     cout << "6. Tampilkan Transaksi\n";
+    cout << "7. Edit Produk\n";
+    cout << "8. Hapus Produk\n";
     cout << "0. Log Out\n";
     choice = getIntInput("Pilih: ");
 
@@ -557,6 +659,20 @@ void buyerMenu() {
 int main() {
   loadData();
   loadTransactions();
+  loadAccounts();
+  if(accounts.empty()){
+
+    Account admin;
+
+    admin.username = "admin";
+    admin.passwordHash = simpleHash("admin123");
+
+    admin.role = "admin";
+
+    accounts.push_back(admin);
+
+    saveAccounts();
+  }
 
   int choice;
   do {
@@ -565,17 +681,24 @@ int main() {
     cout << "Masuk Sebagai:\n";
     cout << "1. Admin\n";
     cout << "2. Pembeli\n";
+    cout << "3. Register\n";
     cout << "0. Keluar\n";
     choice = getIntInput("Pilih: ");
 
     switch (choice) {
     case 1:
-      if (loginAdmin()) {
+      if (login("admin")) {
         adminMenu();
       }
       break;
     case 2:
-      buyerMenu();
+      if (login("buyer")) {
+        buyerMenu();
+      }
+      break;
+    case 3:
+      registerAccount();
+      system("pause");
       break;
     case 0:
       saveData();
