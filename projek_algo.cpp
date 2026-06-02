@@ -626,6 +626,14 @@ void deleteProduct() {
     cout << "Produk tidak ditemukan!\n";
 }
 
+int countProducts(Product *ptr, int size){
+
+    if(size == 0)
+        return 0;
+
+    return 1 + countProducts(ptr + 1,  size - 1);
+}
+
 void adminMenu() {
   int choice;
   do {
@@ -639,6 +647,7 @@ void adminMenu() {
     cout << "6. Tampilkan Transaksi\n";
     cout << "7. Edit Produk\n";
     cout << "8. Hapus Produk\n";
+    cout << "9. Statistik Sistem\n";
     cout << "0. Log Out\n";
     choice = getIntInput("Pilih: ");
 
@@ -674,6 +683,10 @@ void adminMenu() {
       break;
     case 8:
       deleteProduct();
+      system("pause");
+      break;
+    case 9: 
+      countProducts(&products[0], products.size());
       system("pause");
       break;
     case 0:
