@@ -455,7 +455,7 @@ void loadAccounts(){
 
   Account a;
 
-  char comma;
+  //char comma;
 
   while (getline(file, a.username, ',')){
 
@@ -468,29 +468,49 @@ void loadAccounts(){
 
 void registerAccount(){
 
-  Account a;
+    Account a;
 
-  cout << "\n=== REGISTER ACCOUNT ===\n";
+    cout << "\n=== REGISTER ACCOUNT ===\n";
 
-  cout << "Username: ";
-  cin >> a.username;
+    while (true) {
 
-  for(auto acc : accounts){
+        cout << "Username: ";
+        getline(cin, a.username);
 
-    if (acc.username == a.username){
+        if (a.username.empty()) {
+            cout << "Username tidak boleh kosong!\n";
+            continue;
+        }
 
-      cout << "Username sudah digunakan!\n";
-      return;
+        if (a.username.find(' ') != string::npos) {
+            cout << "Username tidak boleh mengandung spasi!\n";
+            continue;
+        }
+
+        bool used = false;
+
+        for (auto acc : accounts) {
+
+            if (acc.username == a.username) {
+                used = true;
+                break;
+            }
+        }
+
+        if (used) {
+            cout << "Username sudah digunakan!\n";
+            continue;
+        }
+
+        break;
     }
-    
-  } 
+
     string password;
 
     cout << "Password: ";
-    cin >> password;
+    getline(cin, password);
 
     a.passwordHash = simpleHash(password);
-
     a.role = "buyer";
 
     accounts.push_back(a);
@@ -498,7 +518,6 @@ void registerAccount(){
     saveAccounts();
 
     cout << "Register berhasil!\n";
-  
 }
 
 bool login(string role) {
@@ -530,6 +549,81 @@ bool login(string role) {
     system("pause");
     return false;
   //}
+}
+
+void editProduct() {
+    if (products.empty()) {
+        cout << "Belum ada produk.\n";
+        return;
+    }
+
+    int id = getIntInput("Masukkan ID produk yang ingin diedit: ");
+
+    for (auto &p : products) {
+
+        if (p.id == id) {
+
+            cout << "\n=== DATA LAMA ===\n";
+            cout << "Nama  : " << p.name << endl;
+            cout << "Harga : Rp" << p.price << endl;
+            cout << "Stok  : " << p.stock << endl;
+
+            cout << "\n=== DATA BARU ===\n";
+
+            cout << "Nama Produk : ";
+            getline(cin, p.name);
+
+            p.price = getDoubleInput("Harga Baru : ");
+            p.stock = getIntInput("Stok Baru  : ");
+
+            saveData();
+
+            cout << "\nProduk berhasil diperbarui!\n";
+            return;
+        }
+    }
+
+    cout << "Produk tidak ditemukan!\n";
+}
+
+void deleteProduct() {
+
+    if (products.empty()) {
+        cout << "Belum ada produk.\n";
+        return;
+    }
+
+    int id = getIntInput("Masukkan ID produk yang ingin dihapus: ");
+
+    for (size_t i = 0; i < products.size(); i++) {
+
+        if (products[i].id == id) {
+
+            cout << "\nProduk ditemukan:\n";
+            cout << products[i].name << endl;
+
+            char confirm;
+
+            cout << "Yakin ingin menghapus? (y/n): ";
+            cin >> confirm;
+
+            if (confirm == 'y' || confirm == 'Y') {
+
+                products.erase(products.begin() + i);
+
+                saveData();
+
+                cout << "Produk berhasil dihapus!\n";
+            }
+            else {
+                cout << "Penghapusan dibatalkan.\n";
+            }
+
+            return;
+        }
+    }
+
+    cout << "Produk tidak ditemukan!\n";
 }
 
 void adminMenu() {
@@ -572,6 +666,14 @@ void adminMenu() {
       break;
     case 6:
       showTransactions();
+      system("pause");
+      break;
+    case 7:
+      editProduct();
+      system("pause");
+      break;
+    case 8:
+      deleteProduct();
       system("pause");
       break;
     case 0:
