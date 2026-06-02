@@ -455,7 +455,7 @@ void loadAccounts(){
 
   Account a;
 
-  //char comma;
+  char comma;
 
   while (getline(file, a.username, ',')){
 
